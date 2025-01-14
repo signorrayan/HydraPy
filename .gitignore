@@ -1,0 +1,8 @@
+results/
+venv/
+thc-hydra/
+*.restore
+.idea/
+*.pyc
+*.pyd
+docker-compose-testing-protocols.yml

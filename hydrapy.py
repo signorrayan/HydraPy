@@ -128,8 +128,8 @@ class HydraAttack:
                         results.append(creds)
                     # Stop on first success if configured
                     if self.stop_on_success:
-                        process.terminate()
-                        process.kill()
+                        await process.terminate()
+                        await process.kill()
                         return True
                 else:
                     logger.info(line)
@@ -140,22 +140,22 @@ class HydraAttack:
             # Check for SNMP credentials:
             # Example format: [161][snmp] host: 127.0.0.1 password: public
             if "[snmp]" in line:
-                parts = re.findall(r'\[(\d+)\]\[\S+\] host: .*?\s+password: (.*?)(?:\s|$)', line)
+                parts = re.search(r'\[(\d+)\]\[\S+\] host: .*?\s+password: (.*?)(?:\s|$)', line)
                 if parts:
                     return {
-                        'port': parts[0][0],
-                        'password': parts[0][1],
+                        'port': parts.group(1),
+                        'password': parts.group(2),
                         'timestamp': datetime.now().isoformat()
                     }
 
             else:
                 # Example format: [21][ftp] host: 127.0.0.1   login: admin   password: 123456
-                parts = re.findall(r'\[(\d+)\]\[\S+\]\s+host:\s+.*?\s+login:\s+(.*?)\s+password:\s+(.*?)(?:\s|$)', line)
+                parts = re.search(r'\[(\d+)\]\[\S+\]\s+host:\s+.*?\s+login:\s+(.*?)\s+password:\s+(.*?)(?:\s|$)', line)
                 if parts:
                     return {
-                        'port': parts[0][0],
-                        'username': parts[0][1],
-                        'password': parts[0][1],
+                        'port': parts.group(1),
+                        'username': parts.group(2),
+                        'password': parts.group(3),
                         'timestamp': datetime.now().isoformat()
                     }
         except Exception as e:

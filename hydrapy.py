@@ -128,8 +128,12 @@ class HydraAttack:
                         results.append(creds)
                     # Stop on first success if configured
                     if self.stop_on_success:
-                        await process.terminate()
-                        await process.kill()
+                        terminate_future = process.terminate()
+                        if terminate_future is not None:
+                            await terminate_future
+                        kill_future = process.kill()
+                        if kill_future is not None:
+                            await kill_future
                         return True
                 else:
                     logger.info(line)
@@ -234,12 +238,16 @@ class HydraAttack:
 
                 # Wait for process to terminate
                 try:
-                    await asyncio.wait_for(process.wait(), timeout=10)
+                    wait_future = process.wait()
+                    if wait_future is not None:
+                        await asyncio.wait_for(wait_future, timeout=10)
                 except asyncio.TimeoutError:
                     if process and process.returncode is None:
                         process.kill()
                         try:
-                            await asyncio.wait_for(process.wait(), timeout=10)
+                            wait_future = process.wait()
+                            if wait_future is not None:
+                                await asyncio.wait_for(wait_future, timeout=10)
                         except asyncio.TimeoutError:
                             pass
                     logger.warning("Force killed Hydra process")
@@ -254,7 +262,9 @@ class HydraAttack:
                     logger.info("Attempting to terminate Hydra process...")
                     # Try SIGTERM to kill process
                     process.terminate()
-                    await asyncio.wait_for(process.wait(), timeout=5.0)
+                    wait_future = process.wait()
+                    if wait_future is not None:
+                        await asyncio.wait_for(wait_future, timeout=5.0)
 
 
 
@@ -304,7 +314,9 @@ class HydraAttack:
             if process and process.returncode is None:
                 process.kill()
                 try:
-                    await asyncio.wait_for(process.wait(), timeout=1.0)
+                    wait_future = process.wait()
+                    if wait_future is not None:
+                        await asyncio.wait_for(wait_future, timeout=1.0)
                 except (asyncio.TimeoutError, Exception):
                     pass
 
